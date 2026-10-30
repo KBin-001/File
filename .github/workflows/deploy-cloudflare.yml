@@ -76,7 +76,13 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: 检查 Cloudflare 凭据
+        env:
+          CLIPBOARD_AUTH_PASSWORD: ${{ secrets.AUTH_PASSWORD }}
         run: |
+          if [ -z "$CLIPBOARD_AUTH_PASSWORD" ]; then
+            echo "::error::Set repository secret AUTH_PASSWORD before deploying this personal clipboard."
+            exit 1
+          fi
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
             echo "::error::缺 CF_API_TOKEN / CLOUDFLARE_API_TOKEN —— 到本仓库 Settings → Secrets 里加上"
             exit 1
