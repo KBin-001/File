@@ -206,9 +206,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         ? localStorage.getItem('fullscreenSendClose') === 'true'
         : true,
     fullscreenOpacity: loadFullscreenOpacity(),
-    // 界面模式：**地址里的 `?mode=` 优先**，其次是上次用过的，最后是标准模式。
+    // 界面模式：**地址里的 `?mode=` 优先**，其次是上次用过的，最后是**时间线**。
+    // 默认「时间线」而不是「标准」：打开站点第一眼要看的是按天分组、一条一行的历史。
     // 这样「一个 tab 一个模式」——每个 tab 有自己的地址，就互不干扰。
-    uiMode: readLocationParam('mode') || localStorage.getItem('uiMode') || 'default',
+    uiMode: readLocationParam('mode') || localStorage.getItem('uiMode') || 'timeline',
     // 嵌入态（桌面端把网页版塞进 iframe 时带 `?embed=1`）。
     embedded: readLocationParam('embed') === '1',
 
