@@ -180,7 +180,10 @@ jobs:
           # ── D1 ────────────────────────────────────────────────────────────
           # ⚠️ 末尾 `|| true`：`d1 list` 报错或 `head` 提前关管道都会让赋值失败，
           #    而「库里还没有这个 db」正是要走创建分支的正常情况。
+          # ⚠️ `sed -n '/^\[/,$p'`：wrangler 的更新横幅可能混进 stdout（jq 解析会挂）——
+          #    从第一个 `[` 起切，纯 JSON 时是空操作。与生产那条同一条理由。
           d1_id=$(wrangler d1 list --json 2>/dev/null \
+            | sed -n '/^\[/,$p' \
             | jq -r --arg n "$DB_NAME" '.[] | select(.name == $n) | .uuid' \
             | head -1 || true)
           if [ -z "$d1_id" ] || [ "$d1_id" = "null" ]; then
@@ -214,6 +217,7 @@ jobs:
             # 再兜一层：万一输出格式又变了，按名字从清单里取（与「已存在」那条路同源）。
             if [ -z "$d1_id" ]; then
               d1_id=$(wrangler d1 list --json 2>/dev/null \
+                | sed -n '/^\[/,$p' \
                 | jq -r --arg n "$DB_NAME" '.[] | select(.name == $n) | .uuid' \
                 | head -1 || true)
             fi

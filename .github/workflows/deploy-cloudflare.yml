@@ -179,7 +179,11 @@ jobs:
           # 「database_id 不是合法的 UUID」，而那句话不告诉你要去哪拿 id。
           # ⚠️ 末尾那个 `|| true`：`set -euo pipefail` 下，`d1 list` 报错或 `head` 提前关掉管道
           # 都会让整条赋值失败 —— 而「库里还没有这个 db」正是要走下面那条创建分支的**正常**情况。
+          # ⚠️ `sed -n '/^\[/,$p'`：wrangler 的更新横幅/提示行可能混进 **stdout**
+          #    （2026-11-11 的 CI 日志里 jq 报 `Invalid numeric literal` 就是它），
+          #    从第一个 `[` 起切掉前面所有非 JSON 行，纯 JSON 时是空操作。
           d1_id=$(wrangler d1 list --json 2>/dev/null \
+            | sed -n '/^\[/,$p' \
             | jq -r --arg n "$DB_NAME" '.[] | select(.name == $n) | .uuid' \
             | head -1 || true)
           if [ -z "$d1_id" ] || [ "$d1_id" = "null" ]; then
@@ -209,6 +213,7 @@ jobs:
               | head -1 | sed -E 's/.*"([^"]+)"$/\1/' || true)
             if [ -z "$d1_id" ]; then
               d1_id=$(wrangler d1 list --json 2>/dev/null \
+                | sed -n '/^\[/,$p' \
                 | jq -r --arg n "$DB_NAME" '.[] | select(.name == $n) | .uuid' \
                 | head -1 || true)
             fi
